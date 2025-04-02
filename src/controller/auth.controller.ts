@@ -71,7 +71,11 @@ export const signIn = async (req: Request, res: Response) => {
         res.status(401).json(envelope);
         return;
     }
-    const token = generateJWTToken({ userId: user.id, role: user.role });
+    const token = generateJWTToken({
+        id: user.id,
+        role: user.role,
+        email: user.email,
+    });
     const envelope = Envelope.success("sign-in successful", {
         email: user.email,
         first_name: user.firstName,
@@ -81,4 +85,30 @@ export const signIn = async (req: Request, res: Response) => {
     });
 
     res.status(200).json(envelope);
+};
+
+export const Me = async (req: Request, res: Response) => {
+    if (!req.user) {
+        const envelope = Envelope.error("unauthorized", "user not found");
+        res.status(401).json(envelope);
+        return;
+    }
+    const user = await getUserByEmail(req.user.email);
+    if (!user) {
+        const envelope = Envelope.error(
+            "user not found",
+            "No user associated with this email"
+        );
+        res.status(404).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success("user found", {
+        email: user.email,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        role: user.role,
+        createdAt: user.createdAt,
+    });
+
+    res.json(envelope);
 };

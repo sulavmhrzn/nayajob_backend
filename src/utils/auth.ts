@@ -1,5 +1,5 @@
 import argon2 from "argon2";
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import { ServerConfig } from "./config.ts";
 
 type SuccessHashResponse = {
@@ -66,4 +66,34 @@ export const generateJWTToken = (
         expiresIn: ServerConfig.jwt.expiresIn,
     });
     return token;
+};
+
+/**
+ * Verifies a JWT token and returns the payload.
+ * @param token - The JWT token to verify.
+ * @returns An object containing the success status and the payload or an error message.
+ */
+export const verifyJWTToken = (
+    token: string
+):
+    | { success: true; payload: string | JwtPayload }
+    | { success: false; error: string } => {
+    try {
+        const payload = jwt.verify(token, ServerConfig.jwt.secret);
+        return { success: true, payload };
+    } catch (error: unknown) {
+        if (error instanceof jwt.JsonWebTokenError) {
+            return {
+                success: false,
+                error: error.message,
+            };
+        }
+        if (error instanceof jwt.TokenExpiredError) {
+            return {
+                success: false,
+                error: "Token expired",
+            };
+        }
+        throw error;
+    }
 };
