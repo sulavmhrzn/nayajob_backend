@@ -1,17 +1,19 @@
 import type { Request, Response } from "express";
-import { CreateUserSchema } from "../schema/auth.schema.ts";
+import { CreateUserSchema, SignInUserSchema } from "../schema/auth.schema.ts";
 import { createUser, getUserByEmail } from "../service/user.ts";
-import { hashPassword } from "../utils/auth.ts";
+import {
+    generateJWTToken,
+    hashPassword,
+    verifyPassword,
+} from "../utils/auth.ts";
 import { Envelope } from "../utils/envelope.ts";
+import { prettyZodError } from "../utils/error.ts";
 
 export const signUp = async (req: Request, res: Response) => {
     const parsed = CreateUserSchema.safeParse(req.body);
 
     if (!parsed.success) {
-        const errors: Record<string, string> = {};
-        parsed.error.issues.map((issue) => {
-            errors[issue.path[0]] = issue.message;
-        });
+        const errors = prettyZodError(parsed.error);
         const envelope = Envelope.error("validation error", errors);
         res.status(400).json(envelope);
         return;
@@ -47,4 +49,36 @@ export const signUp = async (req: Request, res: Response) => {
     });
     req.log.info(newUser, "user created successfully");
     res.status(201).json(envelope);
+};
+
+export const signIn = async (req: Request, res: Response) => {
+    const parsed = SignInUserSchema.safeParse(req.body);
+    if (!parsed.success) {
+        const errors = prettyZodError(parsed.error);
+        const envelope = Envelope.error("validation error", errors);
+        res.status(400).json(envelope);
+        return;
+    }
+    const user = await getUserByEmail(parsed.data.email);
+    if (!user) {
+        const envelope = Envelope.error("invalid credentials");
+        res.status(401).json(envelope);
+        return;
+    }
+    const isValid = await verifyPassword(user.password, parsed.data.password);
+    if (!isValid) {
+        const envelope = Envelope.error("invalid credentials");
+        res.status(401).json(envelope);
+        return;
+    }
+    const token = generateJWTToken({ userId: user.id, role: user.role });
+    const envelope = Envelope.success("sign-in successful", {
+        email: user.email,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        role: user.role,
+        token,
+    });
+
+    res.status(200).json(envelope);
 };

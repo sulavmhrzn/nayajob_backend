@@ -25,3 +25,8 @@ export const CreateUserSchema = z
             createdAt: data.createdAt,
         };
     });
+
+export const SignInUserSchema = z.object({
+    email: z.string({ message: "Email is required" }).email(),
+    password: z.string({ message: "Password is required" }),
+});

@@ -9,7 +9,16 @@ const prisma = new PrismaClient();
  */
 export const getUserByEmail = async (email: string) => {
     const user = await prisma.user.findUnique({
-        select: { email: true, firstName: true, lastName: true, role: true },
+        select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            password: true,
+            createdAt: true,
+            updatedAt: true,
+        },
         where: { email },
     });
     return user;

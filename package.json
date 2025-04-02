@@ -15,9 +15,12 @@
     "dependencies": {
         "@prisma/client": "6.5.0",
         "@types/express": "^5.0.1",
+        "@types/jsonwebtoken": "^9.0.9",
+        "@types/ms": "^2.1.0",
         "argon2": "^0.41.1",
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
+        "jsonwebtoken": "^9.0.2",
         "nodemon": "^3.1.9",
         "picocolors": "^1.1.1",
         "pino": "^9.6.0",

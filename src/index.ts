@@ -16,6 +16,9 @@ app.use("/api/health-check", healthCheckRouter);
 app.use("/api/auth", authRouter);
 
 const port = process.env.PORT ? Number(process.env.PORT) : ServerConfig.port;
+if (!process.env.JWT_SECRET) {
+    logger.warn("JWT_SECRET is not set. Authentication will not work.");
+}
 app.listen(port, () => {
     logger.info(`Server is running on port ${port}`);
 });
