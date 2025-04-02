@@ -1,25 +1,21 @@
 import dotenv from "dotenv";
 import express from "express";
-import pc from "picocolors";
-import healthCheckRouter from "./routes/healthCheck.route.ts";
+import pinoHttp from "pino-http";
+import { authRouter, healthCheckRouter } from "./routes/index.ts";
+import { ServerConfig, pinoHttpLoggerConfig } from "./utils/config.ts";
+import { logger } from "./utils/logger.ts";
 
 dotenv.config();
 
 const app = express();
 
-const PORT = process.env.PORT || 8000;
+app.use(express.json());
+app.use(pinoHttp(pinoHttpLoggerConfig));
 
 app.use("/api/health-check", healthCheckRouter);
+app.use("/api/auth", authRouter);
 
-if (!process.env.PORT) {
-    console.log(
-        pc.yellow(
-            `${pc.bold(
-                "PORT"
-            )} is not defined in the environment variables. Using default port 8000.`
-        )
-    );
-}
-app.listen(PORT, () => {
-    console.log(pc.green(`Server is running on port ${PORT}`));
+const port = process.env.PORT ? Number(process.env.PORT) : ServerConfig.port;
+app.listen(port, () => {
+    logger.info(`Server is running on port ${port}`);
 });

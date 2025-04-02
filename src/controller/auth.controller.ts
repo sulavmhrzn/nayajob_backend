@@ -1,0 +1,50 @@
+import type { Request, Response } from "express";
+import { CreateUserSchema } from "../schema/auth.schema.ts";
+import { createUser, getUserByEmail } from "../service/user.ts";
+import { hashPassword } from "../utils/auth.ts";
+import { Envelope } from "../utils/envelope.ts";
+
+export const signUp = async (req: Request, res: Response) => {
+    const parsed = CreateUserSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        const errors: Record<string, string> = {};
+        parsed.error.issues.map((issue) => {
+            errors[issue.path[0]] = issue.message;
+        });
+        const envelope = Envelope.error("validation error", errors);
+        res.status(400).json(envelope);
+        return;
+    }
+
+    const hash = await hashPassword(parsed.data.password);
+    if (hash.success) {
+        parsed.data.password = hash.hash;
+    } else {
+        const envelope = Envelope.error("hashing error", {
+            error: hash.error,
+        });
+        req.log.error(hash.error, "error hashing password");
+        res.status(500).json(envelope);
+        return;
+    }
+    const user = await getUserByEmail(parsed.data.email);
+    if (user) {
+        const envelope = Envelope.error("user already exists", {
+            email: parsed.data.email,
+        });
+        res.status(409).json(envelope);
+        return;
+    }
+
+    const newUser = await createUser(parsed.data);
+    const envelope = Envelope.success("user created successfully", {
+        email: parsed.data.email,
+        first_name: parsed.data.firstName,
+        last_name: parsed.data.lastName,
+        role: parsed.data.role,
+        createdAt: newUser.createdAt,
+    });
+    req.log.info(newUser, "user created successfully");
+    res.status(201).json(envelope);
+};
