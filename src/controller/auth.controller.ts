@@ -1,13 +1,17 @@
 import type { Request, Response } from "express";
 import { CreateUserSchema, SignInUserSchema } from "../schema/auth.schema.ts";
-import { createUser, getUserByEmail } from "../service/user.ts";
+import {
+    createSeekerProfile,
+    createUser,
+    getUserByEmail,
+} from "../service/user.ts";
 import {
     generateJWTToken,
     hashPassword,
     verifyPassword,
 } from "../utils/auth.ts";
 import { Envelope } from "../utils/envelope.ts";
-import { prettyZodError } from "../utils/error.ts";
+import { prettyZodError } from "../utils/general.ts";
 
 export const signUp = async (req: Request, res: Response) => {
     const parsed = CreateUserSchema.safeParse(req.body);
@@ -40,6 +44,9 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     const newUser = await createUser(parsed.data);
+    if (newUser.role === "SEEKER") {
+        await createSeekerProfile(newUser.id);
+    }
     const envelope = Envelope.success("user created successfully", {
         email: parsed.data.email,
         first_name: parsed.data.firstName,

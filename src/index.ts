@@ -1,7 +1,12 @@
 import dotenv from "dotenv";
 import express from "express";
 import pinoHttp from "pino-http";
-import { authRouter, healthCheckRouter } from "./routes/index.ts";
+import { NotFound } from "./middleware/NotFound.middleware.ts";
+import {
+    authRouter,
+    healthCheckRouter,
+    profileRouter,
+} from "./routes/index.ts";
 import { ServerConfig, pinoHttpLoggerConfig } from "./utils/config.ts";
 import { logger } from "./utils/logger.ts";
 
@@ -14,6 +19,8 @@ app.use(pinoHttp(pinoHttpLoggerConfig));
 
 app.use("/api/health-check", healthCheckRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/profile", profileRouter);
+app.use(NotFound);
 
 const port = process.env.PORT ? Number(process.env.PORT) : ServerConfig.port;
 if (!process.env.JWT_SECRET) {

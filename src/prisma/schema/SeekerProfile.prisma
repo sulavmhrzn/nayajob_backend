@@ -1,0 +1,76 @@
+enum Gender {
+    MALE
+    FEMALE
+    OTHERS
+}
+
+model SeekerProfile {
+    id          Int          @id @default(autoincrement())
+    user        User         @relation(fields: [userId], references: [id])
+    userId      Int          @unique @map("user_id")
+    phone       String?
+    location    String?
+    bio         String?
+    gender      Gender       @default(MALE)
+    skills      Skill[]
+    socialLinks SocialLink[]
+    education   Education[]
+    experience  Experience[]
+    createdAt   DateTime     @default(now()) @map("created_at")
+    updatedAt   DateTime     @updatedAt @map("updated_at")
+
+    @@map("seeker_profiles")
+}
+
+model Skill {
+    id              Int            @id @default(autoincrement())
+    name            String         @unique
+    createdAt       DateTime       @default(now()) @map("created_at")
+    updatedAt       DateTime       @updatedAt @map("updated_at")
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    seekerProfileId Int?           @map("seeker_profile_id")
+
+    @@map("skills")
+}
+
+model SocialLink {
+    id              Int            @id @default(autoincrement())
+    platformName    String         @map("platform_name")
+    url             String
+    createdAt       DateTime       @default(now()) @map("created_at")
+    updatedAt       DateTime       @updatedAt @map("updated_at")
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    seekerProfileId Int?           @map("seeker_profile_id")
+
+    @@map("social_links")
+}
+
+model Education {
+    id              Int            @id @default(autoincrement())
+    institution     String
+    degree          String
+    fieldOfStudy    String         @map("field_of_study")
+    startDate       DateTime       @map("start_date")
+    endDate         DateTime?      @map("end_date")
+    createdAt       DateTime       @default(now()) @map("created_at")
+    updatedAt       DateTime       @updatedAt @map("updated_at")
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    seekerProfileId Int?           @map("seeker_profile_id")
+
+    @@map("educations")
+}
+
+model Experience {
+    id              Int            @id @default(autoincrement())
+    jobTitle        String         @map("job_title")
+    companyName     String         @map("company_name")
+    startDate       DateTime       @map("start_date")
+    endDate         DateTime?      @map("end_date")
+    description     String?
+    createdAt       DateTime       @default(now()) @map("created_at")
+    updatedAt       DateTime       @updatedAt @map("updated_at")
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    seekerProfileId Int?           @map("seeker_profile_id")
+
+    @@map("experiences")
+}
