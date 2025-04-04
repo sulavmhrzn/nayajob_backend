@@ -1,5 +1,7 @@
 import express from "express";
 import {
+    addSeekerEducation,
+    getSeekerEducation,
     getSeekerProfile,
     updateSeekerProfile,
 } from "../controller/profile.controller.ts";
@@ -8,17 +10,28 @@ import { loginRequired } from "../middleware/loginRequired.middleware.ts";
 
 const router = express.Router();
 
-router.get(
-    "/seeker-profile",
+const seekerProfileBasicRouter = router.route("/seeker-profile");
+seekerProfileBasicRouter.get(
     loginRequired,
     hasRole("SEEKER"),
     getSeekerProfile
 );
-router.put(
-    "/seeker-profile",
+seekerProfileBasicRouter.put(
     loginRequired,
     hasRole("SEEKER"),
     updateSeekerProfile
+);
+
+const seekerProfileEducationRouter = router.route("/seeker-profile/education");
+seekerProfileEducationRouter.get(
+    loginRequired,
+    hasRole("SEEKER"),
+    getSeekerEducation
+);
+seekerProfileEducationRouter.post(
+    loginRequired,
+    hasRole("SEEKER"),
+    addSeekerEducation
 );
 
 export default router;

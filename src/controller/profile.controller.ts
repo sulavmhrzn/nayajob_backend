@@ -1,9 +1,12 @@
 import type { Request, Response } from "express";
 import {
+    CreateEducationSchema,
+    type CreateEducationSchemaType,
     UpdateSeekerProfileSchema,
     type UpdateSeekerProfileSchemaType,
 } from "../schema/profile.schema.ts";
 import {
+    addSeekerEducationDB,
     getSeekerProfileByUserId,
     updateSeekerProfileDB,
 } from "../service/profile.ts";
@@ -65,4 +68,62 @@ export const updateSeekerProfile = async (
         updatedProfile.data
     );
     res.json(envelope);
+};
+
+export const getSeekerEducation = async (req: Request, res: Response) => {
+    if (!req.user) {
+        const envelope = Envelope.error("user not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const profile = await getSeekerProfileByUserId(req.user.id);
+    if (!profile) {
+        const envelope = Envelope.error("seeker profile not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success(
+        "seeker education fetched successfully",
+        profile.education
+    );
+    res.json(envelope);
+};
+
+export const addSeekerEducation = async (
+    req: Request<any, any, CreateEducationSchemaType>,
+    res: Response
+) => {
+    if (!req.user) {
+        const envelope = Envelope.error("user not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const profile = await getSeekerProfileByUserId(req.user.id);
+    if (!profile) {
+        const envelope = Envelope.error("seeker profile not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const parsed = CreateEducationSchema.safeParse(req.body);
+    if (!parsed.success) {
+        const error = prettyZodError(parsed.error);
+        const envelope = Envelope.error("validation failed", error);
+        res.status(400).json(envelope);
+        return;
+    }
+    const data = await addSeekerEducationDB(req.user.id, {
+        ...parsed.data,
+        startDate: new Date(parsed.data.startDate),
+        endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+    });
+    if (!data.success) {
+        const envelope = Envelope.error(data.error);
+        res.status(500).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success(
+        "seeker education added successfully",
+        data
+    );
+    res.status(201).json(envelope);
 };

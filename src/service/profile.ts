@@ -1,5 +1,13 @@
-import { Prisma, PrismaClient, type SeekerProfile } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+    type Education,
+    Prisma,
+    PrismaClient,
+    type SeekerProfile,
+} from "@prisma/client";
+import {
+    PrismaClientKnownRequestError,
+    PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { logger } from "../utils/logger.ts";
 
 const prisma = new PrismaClient({ log: ["error", "query"] });
@@ -124,6 +132,44 @@ export const updateSeekerProfileDB = async (
             }
         }
         logger.error("Error updating seeker profile", error);
+        return {
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};
+
+/**
+ * Create a new education entry for a seeker in the database
+ * @param userID - The ID of the user to whom the education entry belongs
+ * @param data - The education data to be added
+ * @returns - The updated list of education entries for the seeker
+ */
+export const addSeekerEducationDB = async (
+    userID: number,
+    data: Prisma.EducationCreateInput
+): Promise<
+    { success: true; data: Education[] } | { success: false; error: string }
+> => {
+    try {
+        const profile = await prisma.seekerProfile.update({
+            where: {
+                userId: userID,
+            },
+            data: { education: { create: data } },
+            include: {
+                education: true,
+            },
+        });
+        return { success: true, data: profile.education };
+    } catch (error: unknown) {
+        logger.error("Error adding seeker education", error);
+        if (error instanceof PrismaClientValidationError) {
+            return {
+                success: false,
+                error: "Invalid data provided",
+            };
+        }
         return {
             success: false,
             error: "An unexpected error occurred",

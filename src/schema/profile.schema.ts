@@ -11,3 +11,13 @@ export const UpdateSeekerProfileSchema = z.object({
 export type UpdateSeekerProfileSchemaType = z.infer<
     typeof UpdateSeekerProfileSchema
 >;
+
+export const CreateEducationSchema = z.object({
+    institution: z.string(),
+    degree: z.string(),
+    fieldOfStudy: z.string(),
+    startDate: z.string().date(),
+    endDate: z.string().date().optional(),
+});
+
+export type CreateEducationSchemaType = z.infer<typeof CreateEducationSchema>;

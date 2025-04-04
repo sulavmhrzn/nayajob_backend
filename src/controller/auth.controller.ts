@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
-import { CreateUserSchema, SignInUserSchema } from "../schema/auth.schema.ts";
+import {
+    type CreateUserInput,
+    CreateUserSchema,
+    type SignInUserInput,
+    SignInUserSchema,
+} from "../schema/auth.schema.ts";
 import { createSeekerProfile } from "../service/profile.ts";
 import { createUser, getUserByEmail } from "../service/user.ts";
 import {
@@ -10,7 +15,10 @@ import {
 import { Envelope } from "../utils/envelope.ts";
 import { prettyZodError } from "../utils/general.ts";
 
-export const signUp = async (req: Request, res: Response) => {
+export const signUp = async (
+    req: Request<any, any, CreateUserInput>,
+    res: Response
+) => {
     const parsed = CreateUserSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -55,7 +63,10 @@ export const signUp = async (req: Request, res: Response) => {
     res.status(201).json(envelope);
 };
 
-export const signIn = async (req: Request, res: Response) => {
+export const signIn = async (
+    req: Request<any, any, SignInUserInput>,
+    res: Response
+) => {
     const parsed = SignInUserSchema.safeParse(req.body);
     if (!parsed.success) {
         const errors = prettyZodError(parsed.error);

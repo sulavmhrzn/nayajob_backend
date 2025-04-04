@@ -19,3 +19,6 @@ export const SignInUserSchema = z.object({
     email: z.string({ message: "Email is required" }).email(),
     password: z.string({ message: "Password is required" }),
 });
+
+export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type SignInUserInput = z.infer<typeof SignInUserSchema>;
