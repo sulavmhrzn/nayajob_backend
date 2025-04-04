@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { type Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({ log: ["error", "query"] });
 
@@ -40,90 +40,4 @@ export const createUser = async (userData: Prisma.UserCreateInput) => {
         },
     });
     return user;
-};
-
-/**
- * Create a new seeker profile in the database
- * @param id - The ID of the user to whom the profile belongs
- * @returns - The created seeker profile object
- */
-export const createSeekerProfile = async (
-    id: number
-): Promise<
-    { success: true; message: string } | { success: false; error: string }
-> => {
-    try {
-        await prisma.seekerProfile.create({
-            data: { userId: id },
-        });
-        return {
-            success: true,
-            message: "Seeker profile created successfully",
-        };
-    } catch (error: unknown) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === "P2002") {
-                return {
-                    success: false,
-                    error: "Seeker profile already exists",
-                };
-            }
-        }
-        return {
-            success: false,
-            error: "An unexpected error occurred",
-        };
-    }
-};
-
-/**
- * Get a seeker profile by user ID from the database
- * @param userId - The ID of the user whose profile is to be retrieved
- * @returns The seeker profile object or null if not found
- */
-export const getSeekerProfileByUserId = async (userId: number) => {
-    const seekerProfile = await prisma.seekerProfile.findUnique({
-        relationLoadStrategy: "join",
-        where: {
-            userId: userId,
-        },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    email: true,
-                    firstName: true,
-                    lastName: true,
-                    role: true,
-                },
-            },
-            skills: {
-                select: {
-                    id: true,
-                    name: true,
-                },
-            },
-            experience: {
-                select: {
-                    id: true,
-                    jobTitle: true,
-                    companyName: true,
-                    startDate: true,
-                    endDate: true,
-                    description: true,
-                },
-            },
-            education: {
-                select: {
-                    id: true,
-                    degree: true,
-                    institution: true,
-                    startDate: true,
-                    endDate: true,
-                    fieldOfStudy: true,
-                },
-            },
-        },
-    });
-    return seekerProfile;
 };

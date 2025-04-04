@@ -1,5 +1,6 @@
 import { snakeCase } from "change-case";
-import type { ZodError } from "zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { type ZodError, z } from "zod";
 
 /**
  * Convert object keys to snake_case. This does not convert nested objects.
@@ -26,3 +27,23 @@ export const prettyZodError = (error: ZodError) => {
     });
     return errors;
 };
+
+export const zPhoneNumber = z
+    .string()
+    .optional()
+    .transform((value, ctx) => {
+        if (value) {
+            const isValid = isValidPhoneNumber(value, {
+                defaultCountry: "NP",
+            });
+            if (!isValid) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["phone"],
+                    message: "Invalid phone number",
+                });
+                return z.NEVER;
+            }
+            return value;
+        }
+    });
