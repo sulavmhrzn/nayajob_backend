@@ -1,6 +1,7 @@
 import express from "express";
 import {
     addSeekerEducation,
+    deleteSeekerEducation,
     getSeekerEducation,
     getSeekerProfile,
     updateSeekerProfile,
@@ -33,5 +34,10 @@ seekerProfileEducationRouter.post(
     hasRole("SEEKER"),
     addSeekerEducation
 );
-
+router.delete(
+    "/seeker-profile/education/:educationId",
+    loginRequired,
+    hasRole("SEEKER"),
+    deleteSeekerEducation
+);
 export default router;

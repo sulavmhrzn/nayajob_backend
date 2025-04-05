@@ -176,3 +176,43 @@ export const addSeekerEducationDB = async (
         };
     }
 };
+
+/**
+ * Delete an education entry for a seeker in the database
+ * @param profileID - The ID of the profile from which the education entry will be deleted
+ * @param educationId - The ID of the education entry to be deleted
+ * @returns - The status and result of the deletion operation
+ */
+export const deleteEducationDB = async (
+    profileID: number,
+    educationId: number
+): Promise<
+    | { status: number; success: true; data: Education }
+    | { status: number; success: false; error: string }
+> => {
+    try {
+        const education = await prisma.education.delete({
+            where: {
+                id: educationId,
+                seekerProfileId: profileID,
+            },
+        });
+        return { status: 200, success: true, data: education };
+    } catch (error: unknown) {
+        logger.error("Error deleting education entry", error);
+        if (error instanceof PrismaClientKnownRequestError) {
+            if (error.code === "P2025") {
+                return {
+                    status: 404,
+                    success: false,
+                    error: "Education entry not found",
+                };
+            }
+        }
+        return {
+            status: 500,
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};

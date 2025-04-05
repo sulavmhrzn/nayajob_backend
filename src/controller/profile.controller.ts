@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { z } from "zod";
 import {
     CreateEducationSchema,
     type CreateEducationSchemaType,
@@ -7,6 +8,7 @@ import {
 } from "../schema/profile.schema.ts";
 import {
     addSeekerEducationDB,
+    deleteEducationDB,
     getSeekerProfileByUserId,
     updateSeekerProfileDB,
 } from "../service/profile.ts";
@@ -126,4 +128,37 @@ export const addSeekerEducation = async (
         data
     );
     res.status(201).json(envelope);
+};
+
+export const deleteSeekerEducation = async (req: Request, res: Response) => {
+    const { educationId } = req.params;
+    const validNumber = z.number().safeParse(Number(educationId));
+    if (!validNumber.success) {
+        const envelope = Envelope.error("educationId is not a number");
+        res.status(400).json(envelope);
+        return;
+    }
+    const user = req.user;
+    if (!user) {
+        const envelope = Envelope.error("user not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const profile = await getSeekerProfileByUserId(user.id);
+    if (!profile) {
+        const envelope = Envelope.error("seeker profile not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const deleted = await deleteEducationDB(profile.id, validNumber.data);
+    if (!deleted.success) {
+        const envelope = Envelope.error(deleted.error);
+        res.status(deleted.status).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success(
+        "seeker education deleted successfully",
+        deleted.data
+    );
+    res.status(deleted.status).json(envelope);
 };
