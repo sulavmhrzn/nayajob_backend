@@ -47,7 +47,12 @@
             "argon2"
         ],
         "onlyBuiltDependencies": [
-            "argon2"
+            "argon2",
+            "esbuild",
+            "@prisma/client",
+            "prisma",
+            "@biomejs/biome",
+            "@prisma/engines"
         ]
     }
 }
