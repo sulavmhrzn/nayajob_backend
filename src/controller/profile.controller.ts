@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
     CreateEducationSchema,
     type CreateEducationSchemaType,
+    UpdateEducationSchema,
     UpdateSeekerProfileSchema,
     type UpdateSeekerProfileSchemaType,
 } from "../schema/profile.schema.ts";
@@ -10,6 +11,7 @@ import {
     addSeekerEducationDB,
     deleteEducationDB,
     getSeekerProfileByUserId,
+    updateEducationDB,
     updateSeekerProfileDB,
 } from "../service/profile.ts";
 import { Envelope } from "../utils/envelope.ts";
@@ -161,4 +163,49 @@ export const deleteSeekerEducation = async (req: Request, res: Response) => {
         deleted.data
     );
     res.status(deleted.status).json(envelope);
+};
+
+export const updateSeekerEducation = async (
+    req: Request<{ educationId: string }, any, UpdateSeekerProfileSchemaType>,
+    res: Response
+) => {
+    const { educationId } = req.params;
+    const validEducationId = z.number().safeParse(Number(educationId));
+    if (!validEducationId.success) {
+        res.status(400).json(Envelope.error("educationId is not a number"));
+        return;
+    }
+    const user = req.user;
+    if (!user) {
+        res.status(404).json(Envelope.error("user not found"));
+        return;
+    }
+    const profile = await getSeekerProfileByUserId(user.id);
+    if (!profile) {
+        res.status(404).json(Envelope.error("seeker profile not found"));
+        return;
+    }
+    const parsed = UpdateEducationSchema.safeParse(req.body);
+    if (!parsed.success) {
+        const error = prettyZodError(parsed.error);
+        res.status(400).json(Envelope.error("validation failed", error));
+        return;
+    }
+    if (!parsed.data) {
+        res.status(400).json(Envelope.error("validation failed"));
+        return;
+    }
+
+    const updated = await updateEducationDB(profile.id, validEducationId.data, {
+        ...parsed.data,
+        startDate: parsed.data.startDate && new Date(parsed.data.startDate),
+        endDate: parsed.data.endDate && new Date(parsed.data.endDate),
+    });
+    if (!updated.success) {
+        res.status(updated.status).json(Envelope.error(updated.error));
+        return;
+    }
+    res.status(200).json(
+        Envelope.success("seeker education updated successfully", updated.data)
+    );
 };

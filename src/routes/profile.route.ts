@@ -4,6 +4,7 @@ import {
     deleteSeekerEducation,
     getSeekerEducation,
     getSeekerProfile,
+    updateSeekerEducation,
     updateSeekerProfile,
 } from "../controller/profile.controller.ts";
 import { hasRole } from "../middleware/hasRole.middleware.ts";
@@ -39,5 +40,11 @@ router.delete(
     loginRequired,
     hasRole("SEEKER"),
     deleteSeekerEducation
+);
+router.put(
+    "/seeker-profile/education/:educationId",
+    loginRequired,
+    hasRole("SEEKER"),
+    updateSeekerEducation
 );
 export default router;

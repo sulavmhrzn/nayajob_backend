@@ -199,7 +199,43 @@ export const deleteEducationDB = async (
         });
         return { status: 200, success: true, data: education };
     } catch (error: unknown) {
-        logger.error("Error deleting education entry", error);
+        logger.error(error, "Error deleting education entry");
+        if (error instanceof PrismaClientKnownRequestError) {
+            if (error.code === "P2025") {
+                return {
+                    status: 404,
+                    success: false,
+                    error: "Education entry not found",
+                };
+            }
+        }
+        return {
+            status: 500,
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};
+
+export const updateEducationDB = async (
+    profileId: number,
+    educationId: number,
+    data: Prisma.EducationUpdateInput
+): Promise<
+    | { status: number; success: true; data: Education }
+    | { status: number; success: false; error: string }
+> => {
+    try {
+        const updatedEducation = await prisma.education.update({
+            where: {
+                id: educationId,
+                seekerProfileId: profileId,
+            },
+            data: data,
+        });
+        return { status: 200, success: true, data: updatedEducation };
+    } catch (error: unknown) {
+        logger.error(error, "Error updating education entry");
         if (error instanceof PrismaClientKnownRequestError) {
             if (error.code === "P2025") {
                 return {
