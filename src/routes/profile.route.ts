@@ -1,8 +1,10 @@
 import express from "express";
 import {
     addSeekerEducation,
+    addSeekerExperience,
     deleteSeekerEducation,
     getSeekerEducation,
+    getSeekerExperience,
     getSeekerProfile,
     updateSeekerEducation,
     updateSeekerProfile,
@@ -46,5 +48,19 @@ router.put(
     loginRequired,
     hasRole("SEEKER"),
     updateSeekerEducation
+);
+
+const seekerProfileExperienceRouter = router.route(
+    "/seeker-profile/experience"
+);
+seekerProfileExperienceRouter.get(
+    loginRequired,
+    hasRole("SEEKER"),
+    getSeekerExperience
+);
+seekerProfileExperienceRouter.post(
+    loginRequired,
+    hasRole("SEEKER"),
+    addSeekerExperience
 );
 export default router;

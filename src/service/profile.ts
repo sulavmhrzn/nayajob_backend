@@ -1,5 +1,6 @@
 import {
     type Education,
+    type Experience,
     Prisma,
     PrismaClient,
     type SeekerProfile,
@@ -244,6 +245,51 @@ export const updateEducationDB = async (
                     error: "Education entry not found",
                 };
             }
+        }
+        return {
+            status: 500,
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};
+
+/**
+ * Add a new experience for a seeker
+ * @param userID - The ID of the user adding the experience
+ * @param data - The experience data to be added
+ * @returns - The status and result of the addition operation
+ */
+export const addSeekerExperienceDB = async (
+    userID: number,
+    data: Prisma.ExperienceCreateInput
+): Promise<
+    | { status: number; success: true; data: Experience[] }
+    | { status: number; success: false; error: string }
+> => {
+    try {
+        const profile = await prisma.seekerProfile.update({
+            where: {
+                userId: userID,
+            },
+            data: {
+                experience: {
+                    create: data,
+                },
+            },
+            include: {
+                experience: true,
+            },
+        });
+        return { status: 201, success: true, data: profile.experience };
+    } catch (error: unknown) {
+        logger.error(error, "Error adding seeker experience");
+        if (error instanceof PrismaClientValidationError) {
+            return {
+                status: 400,
+                success: false,
+                error: "Invalid data provided",
+            };
         }
         return {
             status: 500,

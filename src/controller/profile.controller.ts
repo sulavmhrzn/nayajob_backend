@@ -1,14 +1,16 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import {
-    CreateEducationSchema,
+    CreateEducationSchemaRefined,
     type CreateEducationSchemaType,
+    CreateExperienceSchema,
     UpdateEducationSchema,
     UpdateSeekerProfileSchema,
     type UpdateSeekerProfileSchemaType,
 } from "../schema/profile.schema.ts";
 import {
     addSeekerEducationDB,
+    addSeekerExperienceDB,
     deleteEducationDB,
     getSeekerProfileByUserId,
     updateEducationDB,
@@ -108,7 +110,7 @@ export const addSeekerEducation = async (
         res.status(404).json(envelope);
         return;
     }
-    const parsed = CreateEducationSchema.safeParse(req.body);
+    const parsed = CreateEducationSchemaRefined.safeParse(req.body);
     if (!parsed.success) {
         const error = prettyZodError(parsed.error);
         const envelope = Envelope.error("validation failed", error);
@@ -208,4 +210,39 @@ export const updateSeekerEducation = async (
     res.status(200).json(
         Envelope.success("seeker education updated successfully", updated.data)
     );
+};
+
+export const getSeekerExperience = async (req: Request, res: Response) => {
+    res.json({});
+};
+
+export const addSeekerExperience = async (req: Request, res: Response) => {
+    const user = req.user;
+    if (!user) {
+        const envelope = Envelope.error("user not found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const parsed = CreateExperienceSchema.safeParse(req.body);
+    if (!parsed.success) {
+        const error = prettyZodError(parsed.error);
+        const envelope = Envelope.error("validation failed", error);
+        res.status(400).json(envelope);
+        return;
+    }
+    const inserted = await addSeekerExperienceDB(user.id, {
+        ...parsed.data,
+        startDate: new Date(parsed.data.startDate),
+        endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+    });
+    if (!inserted.success) {
+        const envelope = Envelope.error(inserted.error);
+        res.status(inserted.status).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success(
+        "seeker experience added successfully",
+        inserted.data
+    );
+    res.status(201).json(envelope);
 };
