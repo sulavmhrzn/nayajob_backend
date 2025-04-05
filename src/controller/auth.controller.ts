@@ -5,8 +5,8 @@ import {
     type SignInUserInput,
     SignInUserSchema,
 } from "../schema/auth.schema.ts";
-import { createSeekerProfile } from "../service/profile.ts";
-import { createUser, getUserByEmail } from "../service/user.ts";
+import { createSeekerProfile } from "../service/profile.service.ts";
+import { createUser, getUserByEmail } from "../service/user.service.ts";
 import {
     generateJWTToken,
     hashPassword,

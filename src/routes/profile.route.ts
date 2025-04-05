@@ -3,12 +3,13 @@ import {
     addSeekerEducation,
     addSeekerExperience,
     deleteSeekerEducation,
+    deleteSeekerExperience,
     getSeekerEducation,
     getSeekerExperience,
     getSeekerProfile,
     updateSeekerEducation,
     updateSeekerProfile,
-} from "../controller/profile.controller.ts";
+} from "../controller/seekerProfile/index.ts";
 import { hasRole } from "../middleware/hasRole.middleware.ts";
 import { loginRequired } from "../middleware/loginRequired.middleware.ts";
 
@@ -62,5 +63,11 @@ seekerProfileExperienceRouter.post(
     loginRequired,
     hasRole("SEEKER"),
     addSeekerExperience
+);
+router.delete(
+    "/seeker-profile/experience/:experienceId",
+    loginRequired,
+    hasRole("SEEKER"),
+    deleteSeekerExperience
 );
 export default router;

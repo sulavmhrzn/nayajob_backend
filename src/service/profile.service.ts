@@ -184,7 +184,7 @@ export const addSeekerEducationDB = async (
  * @param educationId - The ID of the education entry to be deleted
  * @returns - The status and result of the deletion operation
  */
-export const deleteEducationDB = async (
+export const deleteSeekerEducationDB = async (
     profileID: number,
     educationId: number
 ): Promise<
@@ -218,7 +218,7 @@ export const deleteEducationDB = async (
     }
 };
 
-export const updateEducationDB = async (
+export const updateSeekerEducationDB = async (
     profileId: number,
     educationId: number,
     data: Prisma.EducationUpdateInput
@@ -291,6 +291,84 @@ export const addSeekerExperienceDB = async (
                 error: "Invalid data provided",
             };
         }
+        return {
+            status: 500,
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};
+
+/**
+ * Delete an experience for a seeker
+ * @param profileId - The ID of the user's profile
+ * @param experienceId - The ID of the experience to be deleted
+ * @returns - The status and result of the deletion operation
+ */
+export const deleteSeekerExperienceDB = async (
+    profileId: number,
+    experienceId: number
+): Promise<
+    | { status: number; success: true; data: Experience }
+    | { status: number; success: false; error: string }
+> => {
+    try {
+        const deleted = await prisma.experience.delete({
+            where: {
+                seekerProfileId: profileId,
+                id: experienceId,
+            },
+        });
+        return { status: 200, success: true, data: deleted };
+    } catch (error: unknown) {
+        logger.error(error, "Error deleting experience entry");
+        if (error instanceof PrismaClientKnownRequestError) {
+            if (error.code === "P2025") {
+                return {
+                    status: 404,
+                    success: false,
+                    error: "Experience entry not found",
+                };
+            }
+        }
+        return {
+            status: 500,
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};
+
+/**
+ * Get the experience of a seeker
+ * @param userId - The ID of the user whose experience is to be retrieved
+ * @returns - The status and result of the retrieval operation
+ */
+export const getSeekerExperienceDB = async (
+    userId: number
+): Promise<
+    | { status: number; success: true; data: Experience[] }
+    | { status: number; success: false; error: string }
+> => {
+    try {
+        const profile = await prisma.seekerProfile.findUnique({
+            where: {
+                userId: userId,
+            },
+            include: {
+                experience: true,
+            },
+        });
+        if (!profile) {
+            return {
+                status: 404,
+                success: false,
+                error: "Seeker profile not found",
+            };
+        }
+        return { status: 200, success: true, data: profile.experience };
+    } catch (error: unknown) {
+        logger.error(error, "Error fetching experience");
         return {
             status: 500,
             success: false,
