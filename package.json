@@ -7,8 +7,9 @@
     "scripts": {
         "dev": "pnpm nodemon src/index.ts",
         "db:migrate": "pnpm prisma migrate dev --schema=./src/prisma/schema/",
-        "build": "node build.js",
-        "start": "node dist/index.js"
+        "build": "pnpm prisma generate --schema=./src/prisma/schema/ && node build.js",
+        "start": "node dist/index.js",
+        "postinstall": "pnpm prisma generate --schema=./src/prisma/schema/"
     },
     "keywords": [],
     "author": "",
