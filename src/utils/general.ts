@@ -1,6 +1,9 @@
+import cloudinary from "cloudinary";
+
 import { snakeCase } from "change-case";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { type ZodError, z } from "zod";
+import { logger } from "./logger.ts";
 
 /**
  * Convert object keys to snake_case. This does not convert nested objects.
@@ -47,3 +50,28 @@ export const zPhoneNumber = z
             return value;
         }
     });
+
+export const handleImageUploadToCloudinary = async (
+    folderName: string,
+    public_id: string | number,
+    dataURI: string
+): Promise<
+    | { success: true; data: cloudinary.UploadApiResponse }
+    | { success: false; error: string }
+> => {
+    try {
+        const cloudinaryResponse = await cloudinary.v2.uploader.upload(
+            dataURI,
+            {
+                folder: folderName,
+                public_id: `${public_id}`,
+                overwrite: true,
+                resource_type: "image",
+            }
+        );
+        return { success: true, data: cloudinaryResponse };
+    } catch (error: unknown) {
+        logger.error("Error uploading image to Cloudinary", error);
+        return { success: false, error: "Image upload failed" };
+    }
+};

@@ -1,3 +1,4 @@
+import { CompanySize, CompanyType, IndustryType } from "@prisma/client";
 import z from "zod";
 import { zPhoneNumber } from "../utils/general.ts";
 
@@ -106,3 +107,23 @@ export type CreateExperienceSchemaRefinedType = z.infer<
     typeof CreateExperienceSchemaRefined
 >;
 export type CreateExperienceSchemaType = z.infer<typeof CreateExperienceSchema>;
+
+export const EmployerProfileSchema = z.object({
+    companyName: z.string().nonempty({
+        message: "Company name must contain at least 1 character",
+    }),
+    companyDescription: z.string().nonempty({
+        message: "Company description must contain at least 1 character",
+    }),
+    companyWebsite: z.string().url(),
+    companyLogo: z.string(),
+    companySize: z.nativeEnum(CompanySize),
+    companyIndustryType: z.nativeEnum(IndustryType),
+    companyType: z.nativeEnum(CompanyType),
+    companyLocation: z.string(),
+});
+
+export const UpdateEmployerProfileSchema = EmployerProfileSchema.partial();
+export type UpdateEmployerProfileSchemaType = z.infer<
+    typeof UpdateEmployerProfileSchema
+>;

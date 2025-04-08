@@ -1,5 +1,13 @@
-import { type EmployerProfile, PrismaClient, type User } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+    type EmployerProfile,
+    type Prisma,
+    PrismaClient,
+    type User,
+} from "@prisma/client";
+import {
+    PrismaClientKnownRequestError,
+    PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { logger } from "../utils/logger.ts";
 
 const prisma = new PrismaClient({ log: ["error", "query"] });
@@ -75,6 +83,42 @@ export const getEmployerProfileByUserId = async (
         };
     } catch (error: unknown) {
         logger.error("Error fetching employer profile", error);
+        return {
+            status: 500,
+            success: false,
+            error: "An unexpected error occurred",
+        };
+    }
+};
+
+export const updateEmployerProfileDB = async (
+    userId: number,
+    data: Prisma.EmployerProfileUpdateInput
+): Promise<
+    | { status: number; success: true; data: EmployerProfile }
+    | { status: number; success: false; error: string }
+> => {
+    try {
+        const profile = await prisma.employerProfile.update({
+            where: {
+                userId: userId,
+            },
+            data: data,
+        });
+        return {
+            status: 200,
+            success: true,
+            data: profile,
+        };
+    } catch (error: unknown) {
+        logger.error("Error updating employer profile", error);
+        if (error instanceof PrismaClientValidationError) {
+            return {
+                status: 400,
+                success: false,
+                error: "Validation error",
+            };
+        }
         return {
             status: 500,
             success: false,
