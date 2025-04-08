@@ -21,4 +21,5 @@ export const ServerConfig = {
         secret: process.env.JWT_SECRET,
         expiresIn: (process.env.JWT_EXPIRES_IN as StringValue) || "1h",
     },
+    databaseUrl: process.env.DATABASE_URL,
 };

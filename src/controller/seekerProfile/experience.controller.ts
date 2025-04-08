@@ -6,7 +6,7 @@ import {
     deleteSeekerExperienceDB,
     getSeekerExperienceDB,
     getSeekerProfileByUserId,
-} from "../../service/profile.service.ts";
+} from "../../service/seekerProfile.service.ts";
 import { Envelope } from "../../utils/envelope.ts";
 import { prettyZodError } from "../../utils/general.ts";
 

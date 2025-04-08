@@ -5,7 +5,8 @@ import {
     type SignInUserInput,
     SignInUserSchema,
 } from "../schema/auth.schema.ts";
-import { createSeekerProfile } from "../service/profile.service.ts";
+import { createEmployerProfile } from "../service/employerProfile.service.ts";
+import { createSeekerProfile } from "../service/seekerProfile.service.ts";
 import { createUser, getUserByEmail } from "../service/user.service.ts";
 import {
     generateJWTToken,
@@ -49,9 +50,49 @@ export const signUp = async (
     }
 
     const newUser = await createUser(parsed.data);
-    if (newUser.role === "SEEKER") {
-        await createSeekerProfile(newUser.id);
+    switch (newUser.role) {
+        case "SEEKER": {
+            req.log.info("User is a seeker, creating seeker profile");
+            const profile = await createSeekerProfile(newUser.id);
+            if (!profile.success) {
+                req.log.error("Error creating seeker profile", profile.error);
+                const envelope = Envelope.error(
+                    "error creating seeker profile",
+                    {
+                        error: profile.error,
+                    }
+                );
+                res.status(profile.status).json(envelope);
+                return;
+            }
+            break;
+        }
+        case "EMPLOYER": {
+            req.log.info("User is an employer, creating employer profile");
+            const profile = await createEmployerProfile(newUser);
+            if (!profile.success) {
+                req.log.error("Error creating employer profile", profile.error);
+                const envelope = Envelope.error(
+                    "error creating employer profile",
+                    {
+                        error: profile.error,
+                    }
+                );
+                res.status(profile.status).json(envelope);
+                return;
+            }
+            break;
+        }
+        default: {
+            req.log.error("User role is not recognized");
+            const envelope = Envelope.error("user role not recognized", {
+                role: newUser.role,
+            });
+            res.status(500).json(envelope);
+            return;
+        }
     }
+
     const envelope = Envelope.success("user created successfully", {
         email: parsed.data.email,
         first_name: parsed.data.firstName,

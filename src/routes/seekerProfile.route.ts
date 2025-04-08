@@ -15,7 +15,7 @@ import { loginRequired } from "../middleware/loginRequired.middleware.ts";
 
 const router = express.Router();
 
-const seekerProfileBasicRouter = router.route("/seeker-profile");
+const seekerProfileBasicRouter = router.route("/");
 seekerProfileBasicRouter.get(
     loginRequired,
     hasRole("SEEKER"),
@@ -27,7 +27,7 @@ seekerProfileBasicRouter.put(
     updateSeekerProfile
 );
 
-const seekerProfileEducationRouter = router.route("/seeker-profile/education");
+const seekerProfileEducationRouter = router.route("/education");
 seekerProfileEducationRouter.get(
     loginRequired,
     hasRole("SEEKER"),
@@ -39,21 +39,19 @@ seekerProfileEducationRouter.post(
     addSeekerEducation
 );
 router.delete(
-    "/seeker-profile/education/:educationId",
+    "/education/:educationId",
     loginRequired,
     hasRole("SEEKER"),
     deleteSeekerEducation
 );
 router.put(
-    "/seeker-profile/education/:educationId",
+    "/education/:educationId",
     loginRequired,
     hasRole("SEEKER"),
     updateSeekerEducation
 );
 
-const seekerProfileExperienceRouter = router.route(
-    "/seeker-profile/experience"
-);
+const seekerProfileExperienceRouter = router.route("/experience");
 seekerProfileExperienceRouter.get(
     loginRequired,
     hasRole("SEEKER"),
@@ -65,7 +63,7 @@ seekerProfileExperienceRouter.post(
     addSeekerExperience
 );
 router.delete(
-    "/seeker-profile/experience/:experienceId",
+    "/experience/:experienceId",
     loginRequired,
     hasRole("SEEKER"),
     deleteSeekerExperience

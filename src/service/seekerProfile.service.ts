@@ -21,13 +21,15 @@ const prisma = new PrismaClient({ log: ["error", "query"] });
 export const createSeekerProfile = async (
     id: number
 ): Promise<
-    { success: true; message: string } | { success: false; error: string }
+    | { status: number; success: true; message: string }
+    | { status: number; success: false; error: string }
 > => {
     try {
         await prisma.seekerProfile.create({
             data: { userId: id },
         });
         return {
+            status: 201,
             success: true,
             message: "Seeker profile created successfully",
         };
@@ -35,12 +37,14 @@ export const createSeekerProfile = async (
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === "P2002") {
                 return {
+                    status: 409,
                     success: false,
                     error: "Seeker profile already exists",
                 };
             }
         }
         return {
+            status: 500,
             success: false,
             error: "An unexpected error occurred",
         };
