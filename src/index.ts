@@ -7,6 +7,7 @@ import {
     authRouter,
     employerProfileRouter,
     healthCheckRouter,
+    jobRouter,
     seekerProfileRouter,
 } from "./routes/index.ts";
 import { ServerConfig, pinoHttpLoggerConfig } from "./utils/config.ts";
@@ -23,6 +24,7 @@ app.use("/api/health-check", healthCheckRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/profile/seeker-profile", seekerProfileRouter);
 app.use("/api/profile/employer-profile", employerProfileRouter);
+app.use("/api/jobs", jobRouter);
 app.use(NotFound);
 
 const port = process.env.PORT ? Number(process.env.PORT) : ServerConfig.port;

@@ -2,7 +2,6 @@ import {
     type Education,
     type Experience,
     Prisma,
-    PrismaClient,
     type SeekerProfile,
 } from "@prisma/client";
 import {
@@ -10,8 +9,7 @@ import {
     PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { logger } from "../utils/logger.ts";
-
-const prisma = new PrismaClient({ log: ["error", "query"] });
+import { prisma } from "./db.ts";
 
 /**
  * Create a new seeker profile in the database

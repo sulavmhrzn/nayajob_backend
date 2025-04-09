@@ -1,16 +1,10 @@
-import {
-    type EmployerProfile,
-    type Prisma,
-    PrismaClient,
-    type User,
-} from "@prisma/client";
+import type { EmployerProfile, Prisma, User } from "@prisma/client";
 import {
     PrismaClientKnownRequestError,
     PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { logger } from "../utils/logger.ts";
-
-const prisma = new PrismaClient({ log: ["error", "query"] });
+import { prisma } from "./db.ts";
 
 /**
  * Create an employer profile
@@ -57,6 +51,11 @@ export const createEmployerProfile = async (
     }
 };
 
+/**
+ * Get an employer profile by user ID
+ * @param userId - The ID of the user
+ * @returns - The status and result of the retrieval operation
+ */
 export const getEmployerProfileByUserId = async (
     userId: number
 ): Promise<
@@ -91,6 +90,12 @@ export const getEmployerProfileByUserId = async (
     }
 };
 
+/**
+ * Update an employer profile
+ * @param userId - The ID of the user
+ * @param data - The data to update in the employer profile
+ * @returns - The status and result of the update operation
+ */
 export const updateEmployerProfileDB = async (
     userId: number,
     data: Prisma.EmployerProfileUpdateInput

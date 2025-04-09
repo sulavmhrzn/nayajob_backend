@@ -1,0 +1,57 @@
+model Job {
+    id                 Int              @id @default(autoincrement())
+    title              String           @map("title")
+    description        String           @map("description")
+    location           String?          @map("location") // Can be null for remote jobs 
+    descriptionSummary String?          @map("description_summary") // Can use an AI to generate a summary
+    category           JobCategory      @map("category")
+    minimumSalary      Int?             @map("minimum_salary")
+    maximumSalary      Int?             @map("maximum_salary")
+    jobType            JobType          @map("job_type")
+    deadline           DateTime         @map("deadline")
+    status             JobStatus        @map("status")
+    boosted            Boolean          @default(false) @map("boosted")
+    createdAt          DateTime         @default(now()) @map("created_at")
+    updatedAt          DateTime         @updatedAt @map("updated_at")
+    employerId         Int              @map("employer_id")
+    employer           EmployerProfile? @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+    @@index([status], name: "idx_job_status")
+    @@index([createdAt], name: "idx_job_created_at")
+    @@index([employerId], name: "idx_job_employer_id")
+    @@map("jobs")
+}
+
+enum JobCategory {
+    IT
+    Marketing
+    Sales
+    Finance
+    Healthcare
+    Education
+    Design
+    CustomerService
+    Engineering
+    HR
+    ContentWriting
+    Operations
+    Legal
+    Consulting
+    ProjectManagement
+    Architecture
+}
+
+enum JobType {
+    FullTime
+    PartTime
+    Freelance
+    Contract
+    Internship
+    Remote
+}
+
+enum JobStatus {
+    ACTIVE
+    DRAFT
+    EXPIRED
+}

@@ -1,6 +1,5 @@
-import { type Prisma, PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient({ log: ["error", "query"] });
+import type { Prisma } from "@prisma/client";
+import { prisma } from "../service/db.ts";
 
 /**
  * Get a user by email from the database

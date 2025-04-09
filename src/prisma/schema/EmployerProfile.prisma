@@ -12,8 +12,9 @@ model EmployerProfile {
     userId              Int          @unique @map("user_id")
     createdAt           DateTime     @default(now()) @map("created_at")
     updatedAt           DateTime     @updatedAt @map("updated_at")
+    jobs                Job[]
 
-    @@map("employer_profile")
+    @@map("employer_profiles")
 }
 
 enum CompanySize {
