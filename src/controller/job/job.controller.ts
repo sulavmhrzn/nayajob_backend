@@ -1,10 +1,17 @@
 import type { Request, Response } from "express";
+import { z } from "zod";
 import {
     CreateJobSchema,
     type CreateJobSchemaType,
+    JobQuerySchema,
+    type JobQuerySchemaType,
 } from "../../schema/job.schema.ts";
 import { getEmployerProfileByUserId } from "../../service/employerProfile.service.ts";
-import { createJobDB, getAllJobsDB } from "../../service/job.service.ts";
+import {
+    createJobDB,
+    getAllJobsDB,
+    getJobByIdDB,
+} from "../../service/job.service.ts";
 import { Envelope } from "../../utils/envelope.ts";
 import { prettyZodError } from "../../utils/general.ts";
 
@@ -49,10 +56,21 @@ export const createJob = async (
     res.status(201).json(envelope);
 };
 
-// TODO: Add filtering and sorting options
-export const getAllJobs = async (req: Request, res: Response) => {
-    const page = Number(req.query.page) || 1;
-    const result = await getAllJobsDB({ page });
+export const getAllJobs = async (
+    req: Request<Record<string, never>, unknown, unknown, JobQuerySchemaType>,
+    res: Response
+) => {
+    const parsedQueries = JobQuerySchema.safeParse(req.query);
+    req.log.info("Parsed queries", parsedQueries);
+    if (!parsedQueries.success) {
+        const error = prettyZodError(parsedQueries.error);
+        const envelope = Envelope.error("Invalid query", error);
+        res.status(400).json(envelope);
+        return;
+    }
+    const result = await getAllJobsDB({
+        ...parsedQueries.data,
+    });
     if (!result.success) {
         const envelope = Envelope.error("Failed to fetch jobs", result.error);
         res.status(result.status).json(envelope);
@@ -60,13 +78,36 @@ export const getAllJobs = async (req: Request, res: Response) => {
     }
     const metaData = {
         count: result.data.count,
-        page: page,
-        limit: 5,
-        totalPages: Math.ceil(result.data.count / 5),
+        page: result.data.page,
+        limit: result.data.limit,
+        totalPages: result.data.totalPages,
     };
     const envelope = Envelope.success("Jobs fetched successfully", {
         metaData,
         jobs: result.data.jobs,
     });
+    res.status(200).json(envelope);
+};
+
+export const getJob = async (req: Request<{ id: string }>, res: Response) => {
+    const parsedId = z
+        .object({
+            id: z.coerce.number({ message: "Invalid job id" }),
+        })
+        .safeParse(req.params);
+    if (!parsedId.success) {
+        const error = prettyZodError(parsedId.error);
+        const envelope = Envelope.error("Invalid job id", error);
+        res.status(400).json(envelope);
+        return;
+    }
+
+    const job = await getJobByIdDB(parsedId.data.id);
+    if (!job.success) {
+        const envelope = Envelope.error("Failed to fetch job", job.error);
+        res.status(job.status).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success("Job fetched successfully", job.data);
     res.status(200).json(envelope);
 };

@@ -20,3 +20,16 @@ export const CreateJobSchema = z.object({
 });
 
 export type CreateJobSchemaType = z.infer<typeof CreateJobSchema>;
+
+export const JobQuerySchema = z.object({
+    page: z.coerce.number().min(1).optional().default(1),
+    sort: z
+        .enum(["createdAt", "category", "-createdAt", "-category"])
+        .optional()
+        .default("createdAt"),
+    title: z.string().optional(),
+    jobType: z.nativeEnum(JobType).optional(),
+    jobCategory: z.nativeEnum(JobCategory).optional(),
+});
+
+export type JobQuerySchemaType = z.infer<typeof JobQuerySchema>;
