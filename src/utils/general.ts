@@ -51,6 +51,15 @@ export const zPhoneNumber = z
         }
     });
 
+/**
+ * Upload an image to Cloudinary
+ * @param folderName Cloudinary folder name
+ * @param public_id Cloudinary public id
+ * @param dataURI Base64 encoded image data
+ * @example
+ * const response = await handleImageUploadToCloudinary("myFolder", "myImage", "data:image/png;base64,...");
+ * @returns A promise that resolves to an object indicating success or failure
+ */
 export const handleImageUploadToCloudinary = async (
     folderName: string,
     public_id: string | number,
@@ -74,4 +83,25 @@ export const handleImageUploadToCloudinary = async (
         logger.error("Error uploading image to Cloudinary", error);
         return { success: false, error: "Image upload failed" };
     }
+};
+
+/**
+ * Parse a job id from a string or number to a number
+ * @param id The id to parse
+ * @returns An object containing success status and either the parsed id or an error
+ */
+export const parseJobId = (id: string | number) => {
+    const parsedId = z.coerce
+        .number({ message: "Invalid job id" })
+        .safeParse(id);
+    if (!parsedId.success) {
+        return {
+            success: false as const,
+            error: prettyZodError(parsedId.error),
+        };
+    }
+    return {
+        success: true as const,
+        data: parsedId.data,
+    };
 };

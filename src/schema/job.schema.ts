@@ -33,3 +33,6 @@ export const JobQuerySchema = z.object({
 });
 
 export type JobQuerySchemaType = z.infer<typeof JobQuerySchema>;
+
+export const UpdateJobSchema = CreateJobSchema.partial();
+export type UpdateJobSchemaType = z.infer<typeof UpdateJobSchema>;

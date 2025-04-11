@@ -1,19 +1,21 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
 import {
     CreateJobSchema,
     type CreateJobSchemaType,
     JobQuerySchema,
     type JobQuerySchemaType,
+    UpdateJobSchema,
 } from "../../schema/job.schema.ts";
 import { getEmployerProfileByUserId } from "../../service/employerProfile.service.ts";
 import {
     createJobDB,
+    deleteJobByIdDB,
     getAllJobsDB,
     getJobByIdDB,
+    updateJobDB,
 } from "../../service/job.service.ts";
 import { Envelope } from "../../utils/envelope.ts";
-import { prettyZodError } from "../../utils/general.ts";
+import { parseJobId, prettyZodError } from "../../utils/general.ts";
 
 export const createJob = async (
     req: Request<any, any, CreateJobSchemaType>,
@@ -90,24 +92,97 @@ export const getAllJobs = async (
 };
 
 export const getJob = async (req: Request<{ id: string }>, res: Response) => {
-    const parsedId = z
-        .object({
-            id: z.coerce.number({ message: "Invalid job id" }),
-        })
-        .safeParse(req.params);
-    if (!parsedId.success) {
-        const error = prettyZodError(parsedId.error);
-        const envelope = Envelope.error("Invalid job id", error);
+    const parsed = parseJobId(req.params.id);
+    if (!parsed.success) {
+        const envelope = Envelope.error("Invalid job id", parsed.error);
         res.status(400).json(envelope);
         return;
     }
-
-    const job = await getJobByIdDB(parsedId.data.id);
+    const job = await getJobByIdDB(parsed.data);
     if (!job.success) {
         const envelope = Envelope.error("Failed to fetch job", job.error);
         res.status(job.status).json(envelope);
         return;
     }
     const envelope = Envelope.success("Job fetched successfully", job.data);
+    res.status(200).json(envelope);
+};
+
+export const deleteJob = async (
+    req: Request<{ id: string }>,
+    res: Response
+) => {
+    const parsed = parseJobId(req.params.id);
+    if (!parsed.success) {
+        const envelope = Envelope.error("Invalid job id", parsed.error);
+        res.status(400).json(envelope);
+        return;
+    }
+    if (!req.user) {
+        const envelope = Envelope.error("Unauthorized");
+        res.status(401).json(envelope);
+        return;
+    }
+    const profile = await getEmployerProfileByUserId(req.user.id);
+    if (!profile.success) {
+        const envelope = Envelope.error(
+            "failed to fetch employer profile",
+            profile.error
+        );
+        res.status(profile.status).json(envelope);
+        return;
+    }
+    const result = await deleteJobByIdDB(parsed.data, profile.data.id);
+    if (!result.success) {
+        const envelope = Envelope.error("Failed to delete job", result.error);
+        res.status(result.status).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success("Job deleted successfully", result.data);
+    res.json(envelope);
+};
+
+export const updateJob = async (
+    req: Request<{ id: string }, unknown, CreateJobSchemaType>,
+    res: Response
+) => {
+    const parsedId = parseJobId(req.params.id);
+    if (!parsedId.success) {
+        const envelope = Envelope.error("Invalid job id", parsedId.error);
+        res.status(400).json(envelope);
+        return;
+    }
+    if (!req.user) {
+        const envelope = Envelope.error("Unauthorized");
+        res.status(401).json(envelope);
+        return;
+    }
+    const parsedData = UpdateJobSchema.safeParse(req.body);
+    if (!parsedData.success) {
+        const error = prettyZodError(parsedData.error);
+        const envelope = Envelope.error("Invalid data", error);
+        res.status(400).json(envelope);
+        return;
+    }
+    const profile = await getEmployerProfileByUserId(req.user.id);
+    if (!profile.success) {
+        const envelope = Envelope.error(
+            "failed to fetch employer profile",
+            profile.error
+        );
+        res.status(profile.status).json(envelope);
+        return;
+    }
+    const job = await updateJobDB(parsedId.data, profile.data.id, {
+        ...parsedData.data,
+        deadline:
+            parsedData.data.deadline && new Date(parsedData.data.deadline),
+    });
+    if (!job.success) {
+        const envelope = Envelope.error("Failed to update job", job.error);
+        res.status(job.status).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success("Job updated successfully", job.data);
     res.status(200).json(envelope);
 };
