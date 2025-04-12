@@ -17,7 +17,7 @@ import { Envelope } from "../utils/envelope.ts";
 import { prettyZodError } from "../utils/general.ts";
 
 export const signUp = async (
-    req: Request<any, any, CreateUserInput>,
+    req: Request<unknown, unknown, CreateUserInput>,
     res: Response
 ) => {
     const parsed = CreateUserSchema.safeParse(req.body);
@@ -28,7 +28,6 @@ export const signUp = async (
         res.status(400).json(envelope);
         return;
     }
-
     const hash = await hashPassword(parsed.data.password);
     if (hash.success) {
         parsed.data.password = hash.hash;
@@ -105,7 +104,7 @@ export const signUp = async (
 };
 
 export const signIn = async (
-    req: Request<any, any, SignInUserInput>,
+    req: Request<unknown, unknown, SignInUserInput>,
     res: Response
 ) => {
     const parsed = SignInUserSchema.safeParse(req.body);
