@@ -1,5 +1,6 @@
 import argon2 from "argon2";
 import jwt, { type JwtPayload } from "jsonwebtoken";
+import type { StringValue } from "ms";
 import { ServerConfig } from "./config.ts";
 
 type SuccessHashResponse = {
@@ -60,10 +61,13 @@ export const verifyPassword = async (
  * @returns The generated JWT token.
  */
 export const generateJWTToken = (
-    payload: Record<string, string | number | boolean>
+    payload: Record<string, string | number | boolean>,
+    opts?: { jwtExpiresIn?: StringValue }
 ): string => {
     const token = jwt.sign(payload, ServerConfig.jwt.secret, {
-        expiresIn: ServerConfig.jwt.expiresIn,
+        expiresIn: opts?.jwtExpiresIn
+            ? opts.jwtExpiresIn
+            : ServerConfig.jwt.expiresIn,
     });
     return token;
 };

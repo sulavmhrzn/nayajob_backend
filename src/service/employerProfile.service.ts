@@ -12,7 +12,8 @@ import { prisma } from "./db.ts";
  * @returns - The status and result of the creation operation
  */
 export const createEmployerProfile = async (
-    user: User
+    user: User,
+    { companyName }: { companyName: string }
 ): Promise<
     | { status: number; success: true; data: EmployerProfile }
     | { status: number; success: false; error: string }
@@ -21,7 +22,7 @@ export const createEmployerProfile = async (
         const profile = await prisma.employerProfile.create({
             data: {
                 userId: user.id,
-                companyName: `${user.firstName}'s Company`,
+                companyName: companyName,
                 companyDescription: "No description",
                 companyLogo: "No logo",
                 companyWebsite: "No website",

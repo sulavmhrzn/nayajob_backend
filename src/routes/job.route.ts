@@ -7,14 +7,21 @@ import {
     updateJob,
 } from "../controller/job/job.controller.ts";
 import { hasRole } from "../middleware/hasRole.middleware.ts";
+import { isVerified } from "../middleware/isVerified.middleware.ts";
 import { loginRequired } from "../middleware/loginRequired.middleware.ts";
 
 const router = express.Router();
 
-router.post("/", loginRequired, hasRole("EMPLOYER"), createJob);
+router.post("/", loginRequired, hasRole("EMPLOYER"), isVerified, createJob);
 router.get("/", getAllJobs);
 router.get("/:id", getJob);
-router.delete("/:id", loginRequired, hasRole("EMPLOYER"), deleteJob);
-router.put("/:id", loginRequired, hasRole("EMPLOYER"), updateJob);
+router.delete(
+    "/:id",
+    loginRequired,
+    hasRole("EMPLOYER"),
+    isVerified,
+    deleteJob
+);
+router.put("/:id", loginRequired, hasRole("EMPLOYER"), isVerified, updateJob);
 
 export default router;

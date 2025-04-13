@@ -7,5 +7,7 @@ namespace NodeJS {
         CLOUDINARY_CLOUD_NAME: string;
         CLOUDINARY_API_KEY: string;
         CLOUDINARY_API_SECRET: string;
+        RESEND_API_KEY: string;
+        RESEND_FROM_EMAIL: string;
     }
 }

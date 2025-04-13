@@ -4,6 +4,7 @@ namespace Express {
             id: number;
             email: string;
             role: string;
+            isVerified: boolean;
         };
     }
 }

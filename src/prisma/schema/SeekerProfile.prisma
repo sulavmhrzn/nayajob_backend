@@ -6,7 +6,7 @@ enum Gender {
 
 model SeekerProfile {
     id          Int          @id @default(autoincrement())
-    user        User         @relation(fields: [userId], references: [id])
+    user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId      Int          @unique @map("user_id")
     phone       String?
     location    String?
@@ -27,7 +27,7 @@ model Skill {
     name            String         @unique
     createdAt       DateTime       @default(now()) @map("created_at")
     updatedAt       DateTime       @updatedAt @map("updated_at")
-    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id], onDelete: Cascade)
     seekerProfileId Int?           @map("seeker_profile_id")
 
     @@map("skills")
@@ -39,7 +39,7 @@ model SocialLink {
     url             String
     createdAt       DateTime       @default(now()) @map("created_at")
     updatedAt       DateTime       @updatedAt @map("updated_at")
-    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id], onDelete: Cascade)
     seekerProfileId Int?           @map("seeker_profile_id")
 
     @@map("social_links")
@@ -54,7 +54,7 @@ model Education {
     endDate         DateTime?      @map("end_date")
     createdAt       DateTime       @default(now()) @map("created_at")
     updatedAt       DateTime       @updatedAt @map("updated_at")
-    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id], onDelete: Cascade)
     seekerProfileId Int?           @map("seeker_profile_id")
 
     @@map("educations")
@@ -69,7 +69,7 @@ model Experience {
     description     String?
     createdAt       DateTime       @default(now()) @map("created_at")
     updatedAt       DateTime       @updatedAt @map("updated_at")
-    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id])
+    SeekerProfile   SeekerProfile? @relation(fields: [seekerProfileId], references: [id], onDelete: Cascade)
     seekerProfileId Int?           @map("seeker_profile_id")
 
     @@map("experiences")

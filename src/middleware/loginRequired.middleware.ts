@@ -31,11 +31,12 @@ export const loginRequired = (
         return;
     }
     req.log.info(decodedToken, "user authenticated successfully");
-    const { id, role, email } = decodedToken.payload as UserPayload;
+    const { id, role, email, isVerified } = decodedToken.payload as UserPayload;
     req.user = {
         id,
         email,
         role,
+        isVerified,
     };
     next();
 };
