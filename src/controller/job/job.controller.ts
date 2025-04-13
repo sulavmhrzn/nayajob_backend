@@ -6,7 +6,6 @@ import {
     type JobQuerySchemaType,
     UpdateJobSchema,
 } from "../../schema/job.schema.ts";
-import { getEmployerProfileByUserId } from "../../service/employerProfile.service.ts";
 import {
     createJobDB,
     deleteJobByIdDB,
@@ -15,25 +14,22 @@ import {
     updateJobDB,
 } from "../../service/job.service.ts";
 import { Envelope } from "../../utils/envelope.ts";
-import { parseJobId, prettyZodError } from "../../utils/general.ts";
+import {
+    UserAndEmployerProfileExists,
+    parseJobId,
+    prettyZodError,
+} from "../../utils/general.ts";
 
 export const createJob = async (
-    req: Request<any, any, CreateJobSchemaType>,
+    req: Request<unknown, unknown, CreateJobSchemaType>,
     res: Response
 ) => {
-    const user = req.user;
-    if (!user) {
-        const envelope = Envelope.error("Unauthorized");
-        res.status(401).json(envelope);
-        return;
-    }
-    const profile = await getEmployerProfileByUserId(user.id);
-    if (!profile.success) {
-        const envelope = Envelope.error(
-            "failed to fetch employer profile",
-            profile.error
-        );
-        res.status(profile.status).json(envelope);
+    const { data: response, error } = await UserAndEmployerProfileExists(
+        req,
+        res
+    );
+    if (error) {
+        res.status(error.status).json(error.envelope);
         return;
     }
     const parsed = CreateJobSchema.safeParse(req.body);
@@ -45,7 +41,7 @@ export const createJob = async (
     }
     const data = {
         ...parsed.data,
-        employerId: profile.data.id,
+        employerId: response.profile.id,
         deadline: new Date(parsed.data.deadline),
     };
     const job = await createJobDB(data);
@@ -118,21 +114,15 @@ export const deleteJob = async (
         res.status(400).json(envelope);
         return;
     }
-    if (!req.user) {
-        const envelope = Envelope.error("Unauthorized");
-        res.status(401).json(envelope);
+    const { data: response, error } = await UserAndEmployerProfileExists(
+        req,
+        res
+    );
+    if (error) {
+        res.status(error.status).json(error.envelope);
         return;
     }
-    const profile = await getEmployerProfileByUserId(req.user.id);
-    if (!profile.success) {
-        const envelope = Envelope.error(
-            "failed to fetch employer profile",
-            profile.error
-        );
-        res.status(profile.status).json(envelope);
-        return;
-    }
-    const result = await deleteJobByIdDB(parsed.data, profile.data.id);
+    const result = await deleteJobByIdDB(parsed.data, response.profile.id);
     if (!result.success) {
         const envelope = Envelope.error("Failed to delete job", result.error);
         res.status(result.status).json(envelope);
@@ -152,11 +142,6 @@ export const updateJob = async (
         res.status(400).json(envelope);
         return;
     }
-    if (!req.user) {
-        const envelope = Envelope.error("Unauthorized");
-        res.status(401).json(envelope);
-        return;
-    }
     const parsedData = UpdateJobSchema.safeParse(req.body);
     if (!parsedData.success) {
         const error = prettyZodError(parsedData.error);
@@ -164,16 +149,15 @@ export const updateJob = async (
         res.status(400).json(envelope);
         return;
     }
-    const profile = await getEmployerProfileByUserId(req.user.id);
-    if (!profile.success) {
-        const envelope = Envelope.error(
-            "failed to fetch employer profile",
-            profile.error
-        );
-        res.status(profile.status).json(envelope);
+    const { data: response, error } = await UserAndEmployerProfileExists(
+        req,
+        res
+    );
+    if (error) {
+        res.status(error.status).json(error.envelope);
         return;
     }
-    const job = await updateJobDB(parsedId.data, profile.data.id, {
+    const job = await updateJobDB(parsedId.data, response.profile.id, {
         ...parsedData.data,
         deadline:
             parsedData.data.deadline && new Date(parsedData.data.deadline),

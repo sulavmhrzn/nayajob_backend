@@ -1,8 +1,12 @@
-import cloudinary from "cloudinary";
-
+import type { EmployerProfile } from "@prisma/client";
 import { snakeCase } from "change-case";
+import cloudinary from "cloudinary";
+import type { Request, Response } from "express";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { type ZodError, z } from "zod";
+import { getEmployerProfileByUserId } from "../service/employerProfile.service.ts";
+import type { UserPayload } from "../types/user.ts";
+import { Envelope } from "./envelope.ts";
 import { logger } from "./logger.ts";
 
 /**
@@ -104,4 +108,36 @@ export const parseJobId = (id: string | number) => {
         success: true as const,
         data: parsedId.data,
     };
+};
+
+/**
+ * Checks if the user is authenticated and if the employer profile exists.
+ * @param req - The express request object.
+ * @param res - The express response object.
+ * @returns - An object containing the user and employer profile if they exist, or an error envelope if not.
+ */
+export const UserAndEmployerProfileExists = async (
+    req: Request<any, any, any>,
+    res: Response
+): Promise<
+    | {
+          data: { user: UserPayload; profile: EmployerProfile };
+          error: null;
+      }
+    | { data: null; error: { status: number; envelope: Envelope<unknown> } }
+> => {
+    if (!req.user) {
+        const envelope = Envelope.error("Unauthorized");
+        return { data: null, error: { status: 401, envelope } };
+    }
+
+    const profile = await getEmployerProfileByUserId(req.user.id);
+    if (!profile.success) {
+        const envelope = Envelope.error(
+            "Failed to fetch employer profile",
+            profile.error
+        );
+        return { data: null, error: { status: 500, envelope } };
+    }
+    return { data: { user: req.user, profile: profile.data }, error: null };
 };
