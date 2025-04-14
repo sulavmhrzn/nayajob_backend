@@ -1,4 +1,9 @@
-import { JobCategory, JobStatus, JobType } from "@prisma/client";
+import {
+    ExperienceLevel,
+    JobCategory,
+    JobStatus,
+    JobType,
+} from "@prisma/client";
 import z from "zod";
 
 export const CreateJobSchema = z.object({
@@ -17,6 +22,9 @@ export const CreateJobSchema = z.object({
             message: "Deadline must be in the future",
         }),
     status: z.nativeEnum(JobStatus).default(JobStatus.ACTIVE),
+    experienceLevel: z
+        .nativeEnum(ExperienceLevel)
+        .default(ExperienceLevel.ENTRY),
 });
 
 export type CreateJobSchemaType = z.infer<typeof CreateJobSchema>;
@@ -30,6 +38,7 @@ export const JobQuerySchema = z.object({
     title: z.string().optional(),
     jobType: z.nativeEnum(JobType).optional(),
     jobCategory: z.nativeEnum(JobCategory).optional(),
+    experienceLevel: z.nativeEnum(ExperienceLevel).optional(),
 });
 
 export type JobQuerySchemaType = z.infer<typeof JobQuerySchema>;

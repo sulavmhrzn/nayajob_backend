@@ -67,21 +67,33 @@ export const getAllJobsDB = async (
         const sortField = queries.sort.startsWith("-")
             ? queries.sort.slice(1)
             : queries.sort;
+        const where: Prisma.JobWhereInput = {
+            status: "ACTIVE",
+        };
+        if (queries?.title) {
+            where.title = {
+                contains: queries.title,
+                mode: "insensitive",
+            };
+        }
+        if (queries?.jobType) {
+            where.jobType = {
+                equals: queries.jobType,
+            };
+        }
+        if (queries?.jobCategory) {
+            where.category = {
+                equals: queries.jobCategory,
+            };
+        }
+        if (queries?.experienceLevel) {
+            where.experienceLevel = {
+                equals: queries.experienceLevel,
+            };
+        }
         const [jobs, count] = await prisma.$transaction([
             prisma.job.findMany({
-                where: {
-                    status: "ACTIVE",
-                    title: {
-                        contains: queries?.title,
-                        mode: "insensitive",
-                    },
-                    jobType: {
-                        equals: queries?.jobType,
-                    },
-                    category: {
-                        equals: queries?.jobCategory,
-                    },
-                },
+                where,
                 include: {
                     employer: true,
                 },
@@ -91,7 +103,7 @@ export const getAllJobsDB = async (
                 take: PAGE_SIZE,
                 skip: (queries.page - 1) * PAGE_SIZE,
             }),
-            prisma.job.count({ where: { status: "ACTIVE" } }),
+            prisma.job.count({ where }),
         ]);
         return {
             status: 200,

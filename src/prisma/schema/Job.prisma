@@ -11,6 +11,7 @@ model Job {
     deadline           DateTime         @map("deadline")
     status             JobStatus        @map("status")
     boosted            Boolean          @default(false) @map("boosted")
+    experienceLevel    ExperienceLevel  @default(ENTRY) @map("experience_level")
     createdAt          DateTime         @default(now()) @map("created_at")
     updatedAt          DateTime         @updatedAt @map("updated_at")
     employerId         Int              @map("employer_id")
@@ -19,6 +20,9 @@ model Job {
     @@index([status], name: "idx_job_status")
     @@index([createdAt], name: "idx_job_created_at")
     @@index([employerId], name: "idx_job_employer_id")
+    @@index([experienceLevel], name: "idx_job_experience_level")
+    @@index([category], name: "idx_job_category")
+    @@index([jobType], name: "idx_job_type")
     @@map("jobs")
 }
 
@@ -54,4 +58,13 @@ enum JobStatus {
     ACTIVE
     DRAFT
     EXPIRED
+}
+
+enum ExperienceLevel {
+    INTERN
+    ENTRY
+    JUNIOR
+    MID
+    SENIOR
+    LEAD
 }
