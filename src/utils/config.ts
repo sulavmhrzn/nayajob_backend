@@ -31,4 +31,8 @@ export const ServerConfig = {
         apiKey: process.env.RESEND_API_KEY,
         fromEmail: process.env.RESEND_FROM_EMAIL,
     },
+    rateLimit: {
+        windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 20 * 60 * 1000,
+        maxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    },
 };

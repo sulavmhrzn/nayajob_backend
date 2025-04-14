@@ -9,5 +9,7 @@ namespace NodeJS {
         CLOUDINARY_API_SECRET: string;
         RESEND_API_KEY: string;
         RESEND_FROM_EMAIL: string;
+        RATE_LIMIT_WINDOW_MS: string;
+        RATE_LIMIT_MAX_REQUESTS: string;
     }
 }

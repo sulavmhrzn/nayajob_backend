@@ -1,8 +1,10 @@
 import type { Request, Response } from "express";
 import type { JwtPayload } from "jsonwebtoken";
+import { z } from "zod";
 import {
     type CreateUserInput,
     CreateUserSchema,
+    PasswordResetSchema,
     type SignInUserInput,
     SignInUserSchema,
 } from "../schema/auth.schema.ts";
@@ -19,7 +21,7 @@ import {
     verifyJWTToken,
     verifyPassword,
 } from "../utils/auth.ts";
-import { sendWelcomeEmail } from "../utils/email.ts";
+import { sendPasswordResetEmail, sendWelcomeEmail } from "../utils/email.ts";
 import { Envelope } from "../utils/envelope.ts";
 import { prettyZodError } from "../utils/general.ts";
 
@@ -285,6 +287,97 @@ export const verifyAccount = async (req: Request, res: Response) => {
         role: user.data.role,
         createdAt: user.data.createdAt,
         updatedAt: user.data.updatedAt,
+    });
+    res.json(envelope);
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const email = z
+        .string()
+        .email()
+        .safeParse(req.body?.email, { path: ["email"] });
+    if (!email.success) {
+        const error = prettyZodError(email.error);
+        const envelope = Envelope.error("invalid email", error);
+        res.status(400).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success("email sent", {
+        email: email.data,
+        message:
+            "An email has been sent to you if you are a registered user. Please check your inbox.",
+    });
+    const user = await getUserByEmail(email.data);
+    if (!user.success || user.status === 404 || !user.data) {
+        res.json(envelope);
+        return;
+    }
+    const token = generateJWTToken(
+        { id: user.data.id, email: user.data.email },
+        { jwtExpiresIn: "15min" }
+    );
+    const response = await sendPasswordResetEmail([user.data.email], token);
+    if (!response.success) {
+        const envelope = Envelope.error("error sending email", response.error);
+        res.status(500).json(envelope);
+        return;
+    }
+    res.json(envelope);
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    const parsed = PasswordResetSchema.safeParse(req.body);
+    if (!parsed.success) {
+        const errors = prettyZodError(parsed.error);
+        const envelope = Envelope.error("validation error", errors);
+        res.status(400).json(envelope);
+        return;
+    }
+    const token = verifyJWTToken(parsed.data.token);
+    if (!token.success) {
+        const envelope = Envelope.error("invalid token", token.error);
+        res.status(401).json(envelope);
+        return;
+    }
+    const { email } = token.payload as JwtPayload;
+    const user = await getUserByEmail(email);
+    if (!user.success) {
+        const envelope = Envelope.error("error fetching user", user.error);
+        res.status(user.status).json(envelope);
+        return;
+    }
+    if (user.status === 404) {
+        const envelope = Envelope.error("user not found", "No user found");
+        res.status(404).json(envelope);
+        return;
+    }
+    if (!user.data) {
+        const envelope = Envelope.error("user not found", "No user found");
+        res.status(404).json(envelope);
+        return;
+    }
+    const hashedPassword = await hashPassword(parsed.data.password);
+    if (!hashedPassword.success) {
+        const envelope = Envelope.error("error hashing password", {
+            error: hashedPassword.error,
+        });
+        req.log.error(hashedPassword.error, "error hashing password");
+        res.status(500).json(envelope);
+        return;
+    }
+    const updatedUser = await updateUserById(user.data.id, {
+        password: hashedPassword.hash,
+    });
+    if (!updatedUser.success) {
+        const envelope = Envelope.error(
+            "error updating password",
+            updatedUser.error
+        );
+        res.status(500).json(envelope);
+        return;
+    }
+    const envelope = Envelope.success("password reset successful", {
+        email: user.data.email,
     });
     res.json(envelope);
 };

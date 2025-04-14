@@ -105,3 +105,30 @@ export const sendWelcomeEmail = async (
 
     return await sendEmail(to, subject, html);
 };
+
+export const sendPasswordResetEmail = async (
+    to: string[],
+    resetToken: string
+) => {
+    const subject = "Reset Your NayaJob Password";
+    const html = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <h1 style="color: #3498db; margin: 0; font-size: 28px;">NayaJob</h1>
+            <div style="margin: 30px 0;">
+                <p>You requested a password reset. Click the button below to create a new password. This link will expire in 15 minutes.</p>
+                
+                <a href="${process.env.FRONTEND_URL}/reset-password?token=${resetToken}" 
+                   style="background-color: #3498db; color: white; padding: 12px 30px; 
+                   text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+                   Reset Password
+                </a>
+                
+                <p style="margin-top: 30px; font-size: 13px; color: #888;">
+                    If you didn't request this password reset, you can ignore this email.
+                </p>
+            </div>
+        </div>
+    `;
+
+    return await sendEmail(to, subject, html);
+};

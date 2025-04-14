@@ -58,3 +58,22 @@ export const SignInUserSchema = z.object({
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 export type SignInUserInput = z.infer<typeof SignInUserSchema>;
+
+export const PasswordResetSchema = z.object({
+    token: z.string().jwt({ message: "Invalid token format" }),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters long")
+        .max(100)
+        .refine(
+            (value) => {
+                if (value.length < 8) {
+                    return z.NEVER;
+                }
+                return zxcvbn(value).score >= 3;
+            },
+            {
+                message: "Password is too weak",
+            }
+        ),
+});

@@ -6,6 +6,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { type ZodError, z } from "zod";
 import { getEmployerProfileByUserId } from "../service/employerProfile.service.ts";
 import type { UserPayload } from "../types/user.ts";
+import { ServerConfig } from "./config.ts";
 import { Envelope } from "./envelope.ts";
 import { logger } from "./logger.ts";
 
@@ -140,4 +141,49 @@ export const UserAndEmployerProfileExists = async (
         return { data: null, error: { status: 500, envelope } };
     }
     return { data: { user: req.user, profile: profile.data }, error: null };
+};
+
+/**
+ * Checks if the required environment variables are set. If not, it logs an error and exits the process.
+ * @returns - void
+ */
+export const checkEnvironmentVariables = (): void => {
+    logger.info("Checking environment variables...");
+    if (!process.env.DATABASE_URL) {
+        logger.error("DATABASE_URL is not set. Exiting...");
+        process.exit(1);
+    }
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+        logger.error("CLOUDINARY_CLOUD_NAME is not set. Exiting...");
+        process.exit(1);
+    }
+    if (!process.env.CLOUDINARY_API_KEY) {
+        logger.error("CLOUDINARY_API_KEY is not set. Exiting...");
+        process.exit(1);
+    }
+    if (!process.env.CLOUDINARY_API_SECRET) {
+        logger.error("CLOUDINARY_API_SECRET is not set. Exiting...");
+        process.exit(1);
+    }
+    if (!process.env.RESEND_API_KEY) {
+        logger.error("RESEND_API_KEY is not set. Exiting...");
+        process.exit(1);
+    }
+    if (!process.env.RESEND_FROM_EMAIL) {
+        logger.error("RESEND_FROM_EMAIL is not set. Exiting...");
+        process.exit(1);
+    }
+    if (!process.env.JWT_SECRET) {
+        logger.warn("JWT_SECRET is not set. Authentication will not work.");
+    }
+    if (!process.env.RATE_LIMIT_WINDOW_MS) {
+        logger.warn(
+            `RATE_LIMIT_WINDOW_MS is not set. Using default value ${ServerConfig.rateLimit.windowMs}.`
+        );
+    }
+    if (!process.env.RATE_LIMIT_MAX_REQUESTS) {
+        logger.warn(
+            `RATE_LIMIT_MAX_REQUESTS is not set. Using default value ${ServerConfig.rateLimit.maxRequests}.`
+        );
+    }
 };
