@@ -176,14 +176,34 @@ export const checkEnvironmentVariables = (): void => {
     if (!process.env.JWT_SECRET) {
         logger.warn("JWT_SECRET is not set. Authentication will not work.");
     }
-    if (!process.env.RATE_LIMIT_WINDOW_MS) {
+    if (!process.env.RATE_LIMIT_GLOBAL_WINDOW_MS) {
         logger.warn(
-            `RATE_LIMIT_WINDOW_MS is not set. Using default value ${ServerConfig.rateLimit.windowMs}.`
+            `RATE_LIMIT_GLOBAL_WINDOW_MS is not set. Using default value ${ServerConfig.rateLimit.global.windowMs}.`
         );
     }
-    if (!process.env.RATE_LIMIT_MAX_REQUESTS) {
+    if (!process.env.RATE_LIMIT_GLOBAL_MAX_REQUESTS) {
         logger.warn(
-            `RATE_LIMIT_MAX_REQUESTS is not set. Using default value ${ServerConfig.rateLimit.maxRequests}.`
+            `RATE_LIMIT_GLOBAL_MAX_REQUESTS is not set. Using default value ${ServerConfig.rateLimit.global.maxRequests}.`
+        );
+    }
+    if (!process.env.RATE_LIMIT_AUTH_WINDOW_MS) {
+        logger.warn(
+            `RATE_LIMIT_AUTH_WINDOW_MS is not set. Using default value ${ServerConfig.rateLimit.authentication.windowMs}.`
+        );
+    }
+    if (!process.env.RATE_LIMIT_AUTH_MAX_REQUESTS) {
+        logger.warn(
+            `RATE_LIMIT_AUTH_MAX_REQUESTS is not set. Using default value ${ServerConfig.rateLimit.authentication.maxRequests}.`
+        );
+    }
+    if (!process.env.RATE_LIMIT_JOB_WINDOW_MS) {
+        logger.warn(
+            `RATE_LIMIT_JOB_WINDOW_MS is not set. Using default value ${ServerConfig.rateLimit.job.windowMs}.`
+        );
+    }
+    if (!process.env.RATE_LIMIT_JOB_MAX_REQUESTS) {
+        logger.warn(
+            `RATE_LIMIT_JOB_MAX_REQUESTS is not set. Using default value ${ServerConfig.rateLimit.job.maxRequests}.`
         );
     }
 };

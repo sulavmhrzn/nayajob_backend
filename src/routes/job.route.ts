@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type RequestHandler } from "express";
 import {
     createJob,
     deleteJob,
@@ -9,12 +9,13 @@ import {
 import { hasRole } from "../middleware/hasRole.middleware.ts";
 import { isVerified } from "../middleware/isVerified.middleware.ts";
 import { loginRequired } from "../middleware/loginRequired.middleware.ts";
+import { jobLimiter } from "../middleware/rateLimiter.middleware.ts";
 
 const router = express.Router();
 
 router.post("/", loginRequired, hasRole("EMPLOYER"), isVerified, createJob);
-router.get("/", getAllJobs);
-router.get("/:id", getJob);
+router.get("/", jobLimiter, getAllJobs as unknown as RequestHandler);
+router.get("/:id", jobLimiter, getJob);
 router.delete(
     "/:id",
     loginRequired,

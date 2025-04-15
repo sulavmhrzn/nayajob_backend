@@ -32,7 +32,21 @@ export const ServerConfig = {
         fromEmail: process.env.RESEND_FROM_EMAIL,
     },
     rateLimit: {
-        windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 20 * 60 * 1000,
-        maxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+        global: {
+            windowMs:
+                Number(process.env.RATE_LIMIT_GLOBAL_WINDOW_MS) ||
+                20 * 60 * 1000,
+            maxRequests:
+                Number(process.env.RATE_LIMIT_GLOBAL_MAX_REQUESTS) || 100,
+        },
+        authentication: {
+            windowMs:
+                Number(process.env.RATE_LIMIT_AUTH_WINDOW_MS) || 15 * 60 * 1000,
+            maxRequests: Number(process.env.RATE_LIMIT_AUTH_MAX_REQUESTS) || 10,
+        },
+        job: {
+            windowMs: Number(process.env.RATE_LIMIT_JOB_WINDOW_MS) || 60 * 1000,
+            maxRequests: Number(process.env.RATE_LIMIT_JOB_MAX_REQUESTS) || 30,
+        },
     },
 };
